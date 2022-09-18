@@ -99,7 +99,7 @@ contract Radish is Ownable, ReentrancyGuard {
     // funding the launching project
     function water() external payable {
         require(maximumContribution >= msg.value >= minimumContribution, "RADISH: value exceeds contribution range");
-        require(endTime > block.timestamp > startTime, "RADISH: ");
+        require(endTime > block.timestamp > startTime, "RADISH: value outside of funding period");
         require(!ripe, "RADISH: radish is already ripe");
 
         _water[msg.sender] += msg.value;
