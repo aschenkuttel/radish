@@ -7,13 +7,19 @@ import "./ERC20.sol";
 contract Garden is Ownable {
     mapping(address => address) private _growingRadishes;
 
+    address factoryAddress;
+    address routerAddress;
+
     uint private constant evmosDecimals = 18;
     uint public launchFee = 50 * (10 ** evmosDecimals);
     uint public tokenFee = 20 * (10 ** evmosDecimals);
 
     event RadishPlanted(address owner, uint timestamp);
 
-    constructor() {}
+    constructor(address factoryAddress_, address routerAddress_) {
+        factoryAddress = factoryAddress_;
+        routerAddress = routerAddress_;
+    }
 
     function createRadish(
         address token,

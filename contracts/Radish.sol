@@ -2,6 +2,8 @@ pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
 import "./ReentrancyGuard.sol";
+import "./Uniswap.sol";
+import "./ERC20.sol";
 
 contract Radish is Ownable, ReentrancyGuard {
     address token;
@@ -28,12 +30,18 @@ contract Radish is Ownable, ReentrancyGuard {
     }
 
     // liquidity period
-    mapping(address => uint) private _liquidity;
+    IUniswapV2Factory public immutable uniswapV2Factory;
+    IUniswapV2Router02 public immutable uniswapV2Router;
+    uint public totalLiquidity;
+
+    event Harvested(uint totalWater, uint timestamp);
 
     // contract needs to be able to receive evmos
     receive() external payable {}
 
     constructor(
+        address factoryAddress,
+        address routerAddress,
         address creator_,
         address token_,
         uint softCap_,
@@ -42,14 +50,17 @@ contract Radish is Ownable, ReentrancyGuard {
         uint endTime_,
         uint minimumContribution_,
         uint maximumContribution_,
-        uint presaleRate_,
-        uint listingRate_,
-        uint liquidityRate_,
+        uint presaleRate_, // the amount of tokens a user receives for 1 evmos in presale
+        uint listingRate_, // the amount of tokens a user receives for 1 evmos in exchange
+        uint liquidityRate_, // the amount of evmos we use for liquidity
         uint lockDuration_
     ) {
         // owner needs to be transferred since
         // garden deployed radish contract
         _transferOwnership(creator_);
+        uniswapV2Factory = IUniswapV2Factory(factoryAddress);
+        uniswapV2Router = IUniswapV2Router02(routerAddress);
+
         token = token_;
         softCap = softCap_;
         hardCap = hardCap_;
@@ -61,6 +72,10 @@ contract Radish is Ownable, ReentrancyGuard {
         listingRate = listingRate_;
         liquidityRate = liquidityRate_;
         lockDuration = lockDuration_;
+    }
+
+    function getOwnedLiquidity() external view returns(uint) {
+        return water[msg.sender] * 1000 / totalWater * totalLiquidity / 1000;
     }
 
     // funding the launching project
@@ -82,7 +97,31 @@ contract Radish is Ownable, ReentrancyGuard {
         require(!withered, "RADISH: radish already withered away");
         require(ripe || block.timestamp >= endTime, "RADISH: radish is not ripe and harvestingTime is not reached yet");
 
+        uint expectedETH = totalWater * liquidityRate / 100;
+        uint expectedTOKEN = expectedETH * listingRate;
+        uint tokenBalance = ERC20(token).balanceOf(address(this));
+        require(expectedTOKEN >= tokenBalance, "RADISH: not enough token deposited");
 
+        IUniswapV2Pair createdPair = uniswapV2Factory.getPair(token, uniswapV2Router.WETH());
+
+        if (address(createdPair) != address(0)) {
+            (uint256 token0Reserve, uint256 token1Reserve,) = liquidityPair.getReserves();
+            if (token0Reserve == 0 && token1Reserve == 0) {
+                withered = true;
+            }
+        }
+ 
+        uniswapV2Router.addLiquidityETH{value:totalWater}(
+            token,
+            expectedTOKEN,
+            expectedTOKEN,
+            totalWater,
+            address(this),
+            block.timestamp
+        );
+
+        totalLiquidity = createdPair.totalSupply();
+        emit Harvested(totalWater, block.timestamp);
     }
 
     // user withdraw if project failed
