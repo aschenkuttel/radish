@@ -32,7 +32,7 @@ contract Garden is Ownable {
         uint presaleRate, // token per evmos
         uint listingRate, // token per evmos
         uint liquidityRate, //
-        uint lockDuration
+        uint lockedTill
     ) external payable {
         require(msg.value >= launchFee, "RADISH: missing launch fee");
         require(_growingRadishes[msg.sender] == address(0), "RADISH: caller has active launch");
@@ -51,7 +51,7 @@ contract Garden is Ownable {
             presaleRate,
             listingRate,
             liquidityRate,
-            lockDuration
+            lockedTill
         );
     }
 
