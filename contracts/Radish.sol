@@ -53,11 +53,6 @@ contract Radish is Ownable, ReentrancyGuard {
 
     event Harvested(uint totalWater, uint timestamp);
 
-    modifier onlyCurrentGardeners() {
-        require(uniswapV2Pair.balanceOf(msg.sender) > 0, "");
-        _;
-    }
-
     // contract needs to be able to receive evmos
     receive() external payable {}
 
@@ -120,14 +115,21 @@ contract Radish is Ownable, ReentrancyGuard {
         require(!withered, "RADISH: radish already withered away");
         require(ripe || block.timestamp >= endTime, "RADISH: radish is not ripe and harvestingTime is not reached yet");
 
+        if (totalWater < softCap) {
+            withered = true;
+            return;
+        }
+
         uint expectedETH = totalWater * liquidityRate / 100;
+        // only supports tokens with 18 decimals
         uint expectedTOKEN = expectedETH * listingRate;
         uint tokenBalance = ERC20(token).balanceOf(address(this));
         require(expectedTOKEN >= tokenBalance, "RADISH: not enough token deposited");
 
         (uint256 token0Reserve, uint256 token1Reserve,) = uniswapV2Pair.getReserves();
-        if (token0Reserve == 0 && token1Reserve == 0) {
+        if (token0Reserve != 0 || token1Reserve != 0) {
             withered = true;
+            return;
         }
 
         uniswapV2Router.addLiquidityETH{value : totalWater}(
@@ -145,7 +147,8 @@ contract Radish is Ownable, ReentrancyGuard {
 
     // user withdraw if project failed
     function revokeWater() external onlyGardeners nonReentrant {
-        if (block.timestamp >= endTime && softCap > totalWater) {
+        require(block.timestamp > endTime, "RADISH: project is still in funding period");
+        if (softCap > totalWater || (block.timestamp - endTime) > 7 days) {
             withered = true;
         }
 
