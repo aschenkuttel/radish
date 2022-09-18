@@ -8,6 +8,8 @@
 # testing
 /coverage
 
+/src/components/FireStore.js
+
 # production
 /build
 

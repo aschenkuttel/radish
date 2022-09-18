@@ -1,25 +1,29 @@
-import logo from './logo.svg';
 import './App.css';
+import {Fragment, useState} from "react"
+import Header from "./components/Header"
+import Creator from "./components/Creator"
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          <code>help me</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [activeTab, setActiveTab] = useState('explorer')
+
+    const getTabContent = () => {
+        if (activeTab === 'launch') {
+            return <Creator/>
+        } else if (activeTab === 'manage') {
+            return <div></div>
+        } else {
+            return <div></div>//<Explorer/>
+        }
+    }
+
+    return (
+        <Fragment>
+            <Header activeTab={activeTab} setActiveTab={setActiveTab}></Header>
+            <div className="flex flex-col justify-center items-center">
+                {getTabContent()}
+            </div>
+        </Fragment>
+    );
 }
 
 export default App;
