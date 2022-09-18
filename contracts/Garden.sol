@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 import "./Radish.sol";
@@ -28,11 +29,7 @@ contract Garden is Ownable {
         uint startTime,
         uint endTime,
         uint minimumContribution,
-        uint maximumContribution,
-        uint presaleRate, // token per evmos
-        uint listingRate, // token per evmos
-        uint liquidityRate, //
-        uint lockedTill
+        uint maximumContribution
     ) external payable {
         require(msg.value >= launchFee, "RADISH: missing launch fee");
         require(_growingRadishes[msg.sender] == address(0), "RADISH: caller has active launch");
@@ -47,11 +44,7 @@ contract Garden is Ownable {
             startTime,
             endTime,
             minimumContribution,
-            maximumContribution,
-            presaleRate,
-            listingRate,
-            liquidityRate,
-            lockedTill
+            maximumContribution
         );
     }
 
@@ -64,11 +57,7 @@ contract Garden is Ownable {
         uint startTime,
         uint endTime,
         uint minimumContribution,
-        uint maximumContribution,
-        uint presaleRate, // token per evmos
-        uint listingRate, // token per evmos
-        uint liquidityRate,
-        uint lockDuration
+        uint maximumContribution
     ) external payable {
         require(msg.value >= (launchFee + tokenFee), "RADISH: missing launch+token fee");
         require(_growingRadishes[msg.sender] == address(0), "RADISH: caller has active launch");
@@ -82,11 +71,7 @@ contract Garden is Ownable {
             startTime,
             endTime,
             minimumContribution,
-            maximumContribution,
-            presaleRate,
-            listingRate,
-            liquidityRate,
-            lockDuration
+            maximumContribution
         );
 
     }
@@ -99,16 +84,14 @@ contract Garden is Ownable {
         uint startTime,
         uint endTime,
         uint minimumContribution,
-        uint maximumContribution,
-        uint presaleRate,
-        uint listingRate,
-        uint liquidityRate,
-        uint lockDuration
+        uint maximumContribution
     ) internal {
         require((startTime - block.timestamp) > 7 days, "RADISH: startTime can't be more than 7 days from now");
         require(7 days > (endTime - startTime), "RADISH: duration can't exceed 7 days");
 
         Radish plantedRadish = new Radish(
+            factoryAddress,
+            routerAddress,
             creator,
             token,
             softCap,
@@ -116,11 +99,7 @@ contract Garden is Ownable {
             startTime,
             endTime,
             minimumContribution,
-            maximumContribution,
-            presaleRate,
-            listingRate,
-            liquidityRate,
-            lockDuration
+            maximumContribution
         );
 
         _growingRadishes[msg.sender] = address(plantedRadish);
@@ -128,15 +107,15 @@ contract Garden is Ownable {
     }
 
     function getRadish(address owner) external view returns(address) {
-        return _growingRadishes[msg.sender];
+        return _growingRadishes[owner];
     }
 
-    function setRadishPrice(uint newPrice) onlyOwner {
-        launchPrice = newPrice;
+    function setRadishPrice(uint newFee) external onlyOwner {
+        launchFee = newFee;
     }
 
-    function setTokenPrice(uint newPrice) onlyOwner {
-        tokenPrice = newPrice;
+    function setTokenPrice(uint newFee) external onlyOwner {
+        tokenFee = newFee;
     }
 
 }

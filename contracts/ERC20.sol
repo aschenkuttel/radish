@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 interface IERC20 {
@@ -109,10 +110,10 @@ contract ERC20 is IERC20 {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(address owner, string memory name_, string memory symbol_, uint totalSupply) {
+    constructor(address owner, string memory name_, string memory symbol_, uint totalSupply_) {
         _name = name_;
         _symbol = symbol_;
-        _totalSupply = totalSupply;
+        _totalSupply = totalSupply_;
         _mint(owner, _totalSupply);
     }
 

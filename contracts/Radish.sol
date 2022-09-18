@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
@@ -18,6 +19,8 @@ contract Radish is Ownable, ReentrancyGuard {
     uint private liquidityRate;
     uint public lockedTill;
 
+
+
     // growing period
     mapping(address => uint) private _water;
     uint public totalWater;
@@ -32,7 +35,7 @@ contract Radish is Ownable, ReentrancyGuard {
     // liquidity period
     IUniswapV2Factory public immutable uniswapV2Factory;
     IUniswapV2Router02 public immutable uniswapV2Router;
-    IUniswapV2Pair public immutable uniswapV2Pair;
+    IUniswapV2Pair public uniswapV2Pair;
     // own LP counter since people can still
     // add liquidity from exchanges
     uint public totalLiquidityToken;
@@ -66,18 +69,13 @@ contract Radish is Ownable, ReentrancyGuard {
         uint startTime_,
         uint endTime_,
         uint minimumContribution_,
-        uint maximumContribution_,
-        uint presaleRate_, // the amount of tokens a user receives for 1 evmos in presale
-        uint listingRate_, // the amount of tokens a user receives for 1 evmos in exchange
-        uint liquidityRate_, // the amount of evmos we use for liquidity
-        uint lockedTill_
+        uint maximumContribution_
     ) {
         // owner needs to be transferred since
         // garden deployed radish contract
         _transferOwnership(creator_);
         uniswapV2Factory = IUniswapV2Factory(factoryAddress);
         uniswapV2Router = IUniswapV2Router02(routerAddress);
-        uniswapV2Pair = uniswapV2Factory.createPair(token, uniswapV2Router.WETH());
 
         token = token_;
         softCap = softCap_;
@@ -86,20 +84,17 @@ contract Radish is Ownable, ReentrancyGuard {
         endTime = endTime_;
         minimumContribution = minimumContribution_;
         maximumContribution = maximumContribution_;
-        presaleRate = presaleRate_;
-        listingRate = listingRate_;
-        liquidityRate = liquidityRate_;
-        lockedTill = lockedTill_;
     }
 
-    function getOwnedLiquidity(address account) external view returns (uint) {
-        return water[account] * 1000 / totalWater * totalLiquidityToken / 1000;
+
+    function getOwnedLiquidity(address account) public view returns (uint) {
+        return _water[account] * 1000 / totalWater * totalLiquidityToken / 1000;
     }
 
     // funding the launching project
     function water() external payable {
-        require(maximumContribution >= msg.value >= minimumContribution, "RADISH: value exceeds contribution range");
-        require(endTime > block.timestamp > startTime, "RADISH: value outside of funding period");
+        require(maximumContribution <= msg.value && msg.value >= minimumContribution, "RADISH: value exceeds contribution range");
+        require(endTime < block.timestamp && block.timestamp >= startTime, "RADISH: value outside of funding period");
         require(!ripe, "RADISH: radish is already ripe");
 
         _water[msg.sender] += msg.value;
@@ -111,7 +106,12 @@ contract Radish is Ownable, ReentrancyGuard {
     }
 
     // launching the project if funded
-    function harvest() external onlyOwner nonReentrant {
+    function harvest(
+        uint presaleRate_, // the amount of tokens a user receives for 1 evmos in presale
+        uint listingRate_, // the amount of tokens a user receives for 1 evmos in exchange
+        uint liquidityRate_, // the amount of evmos we use for liquidity
+        uint lockedTill_
+    ) external onlyOwner nonReentrant {
         require(!withered, "RADISH: radish already withered away");
         require(ripe || block.timestamp >= endTime, "RADISH: radish is not ripe and harvestingTime is not reached yet");
 
@@ -120,11 +120,19 @@ contract Radish is Ownable, ReentrancyGuard {
             return;
         }
 
+        // thanks solidity :)
+        presaleRate = presaleRate_;
+        listingRate = listingRate_;
+        liquidityRate = liquidityRate_;
+        lockedTill = lockedTill_;
+
         uint expectedETH = totalWater * liquidityRate / 100;
         // only supports tokens with 18 decimals
         uint expectedTOKEN = expectedETH * listingRate;
         uint tokenBalance = ERC20(token).balanceOf(address(this));
         require(expectedTOKEN >= tokenBalance, "RADISH: not enough token deposited");
+
+        uniswapV2Pair = IUniswapV2Pair(uniswapV2Factory.createPair(token, uniswapV2Router.WETH()));
 
         (uint256 token0Reserve, uint256 token1Reserve,) = uniswapV2Pair.getReserves();
         if (token0Reserve != 0 || token1Reserve != 0) {
@@ -141,7 +149,6 @@ contract Radish is Ownable, ReentrancyGuard {
             block.timestamp
         );
 
-        lockStart = block.timestamp;
         totalLiquidityToken = uniswapV2Pair.totalSupply();
         emit Harvested(totalWater, block.timestamp);
     }
@@ -157,7 +164,7 @@ contract Radish is Ownable, ReentrancyGuard {
         }
 
         require(withered, "RADISH: radish did not wither yet");
-        payable(msg.sender).transfer(_funds[msg.sender]);
+        payable(msg.sender).transfer(_water[msg.sender]);
     }
 
     // dao methods for gardeners(funders)
@@ -224,12 +231,12 @@ contract Radish is Ownable, ReentrancyGuard {
         }
     }
 
-    function _isPositiveOutcome() internal returns (bool) {
+    function _isPositiveOutcome() internal view returns (bool) {
         uint positiveWeight = _currentVote.positiveVotes * 1000 / totalLiquidityToken;
         return positiveWeight >= majorityPercentage;
     }
 
-    function _isNegativeOutcome() internal returns (bool) {
+    function _isNegativeOutcome() internal view returns (bool) {
         uint negativeWeight = _currentVote.negativeVotes * 1000 / totalLiquidityToken;
         return negativeWeight >= majorityPercentage;
     }
