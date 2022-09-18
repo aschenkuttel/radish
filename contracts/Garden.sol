@@ -13,11 +13,7 @@ contract Garden is Ownable {
 
     event RadishPlanted(address owner, uint timestamp);
 
-    constructor() {
-
-    }
-
-    receive() external payable {}
+    constructor() {}
 
     function createRadish(
         address token,
@@ -101,6 +97,9 @@ contract Garden is Ownable {
         uint liquidityRate,
         uint lockDuration
     ) internal {
+        require((startTime - block.timestamp) > 7 days, "RADISH: startTime can't be more than 7 days from now");
+        require(7 days > (endTime - startTime), "RADISH: duration can't exceed 7 days");
+
         Radish plantedRadish = new Radish(
             creator,
             token,
@@ -117,7 +116,7 @@ contract Garden is Ownable {
         );
 
         _growingRadishes[msg.sender] = address(plantedRadish);
-        emit Event(msg.sender, block.timestamp);
+        emit RadishPlanted(msg.sender, block.timestamp);
     }
 
     function getRadish(address owner) external view returns(address) {
