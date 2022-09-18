@@ -24,7 +24,7 @@ contract Radish is Ownable, ReentrancyGuard {
     bool public ripe; // launch succeeded
     bool public withered; // launch failed
 
-    modifier onlyGardener() {
+    modifier onlyGardeners() {
         require(_water[msg.sender] > 0);
         _;
     }
@@ -32,9 +32,31 @@ contract Radish is Ownable, ReentrancyGuard {
     // liquidity period
     IUniswapV2Factory public immutable uniswapV2Factory;
     IUniswapV2Router02 public immutable uniswapV2Router;
-    uint public totalLiquidity;
+    IUniswapV2Pair public immutable uniswapV2Pair;
+    // own LP counter since people can still
+    // add liquidity from exchanges
+    uint public totalLiquidityToken;
+    // denominator is 1000 (0.66)
+    uint public majorityPercentage = 660;
+
+    enum VotingType {WITHDRAW, EXTEND}
+
+    struct Voting {
+        uint timestamp;
+        uint positiveVotes;
+        uint negativeVotes;
+        uint stateNumber;
+        VotingType votingType;
+    }
+
+    Voting private _currentVote;
 
     event Harvested(uint totalWater, uint timestamp);
+
+    modifier onlyCurrentGardeners() {
+        require(uniswapV2Pair.balanceOf(msg.sender) > 0, "");
+        _;
+    }
 
     // contract needs to be able to receive evmos
     receive() external payable {}
@@ -60,6 +82,7 @@ contract Radish is Ownable, ReentrancyGuard {
         _transferOwnership(creator_);
         uniswapV2Factory = IUniswapV2Factory(factoryAddress);
         uniswapV2Router = IUniswapV2Router02(routerAddress);
+        uniswapV2Pair = uniswapV2Factory.createPair(token, uniswapV2Router.WETH());
 
         token = token_;
         softCap = softCap_;
@@ -74,8 +97,8 @@ contract Radish is Ownable, ReentrancyGuard {
         lockDuration = lockDuration_;
     }
 
-    function getOwnedLiquidity() external view returns(uint) {
-        return water[msg.sender] * 1000 / totalWater * totalLiquidity / 1000;
+    function getOwnedLiquidity(address account) external view returns (uint) {
+        return water[account] * 1000 / totalWater * totalLiquidityToken / 1000;
     }
 
     // funding the launching project
@@ -102,16 +125,12 @@ contract Radish is Ownable, ReentrancyGuard {
         uint tokenBalance = ERC20(token).balanceOf(address(this));
         require(expectedTOKEN >= tokenBalance, "RADISH: not enough token deposited");
 
-        IUniswapV2Pair createdPair = uniswapV2Factory.getPair(token, uniswapV2Router.WETH());
-
-        if (address(createdPair) != address(0)) {
-            (uint256 token0Reserve, uint256 token1Reserve,) = liquidityPair.getReserves();
-            if (token0Reserve == 0 && token1Reserve == 0) {
-                withered = true;
-            }
+        (uint256 token0Reserve, uint256 token1Reserve,) = uniswapV2Pair.getReserves();
+        if (token0Reserve == 0 && token1Reserve == 0) {
+            withered = true;
         }
- 
-        uniswapV2Router.addLiquidityETH{value:totalWater}(
+
+        uniswapV2Router.addLiquidityETH{value : totalWater}(
             token,
             expectedTOKEN,
             expectedTOKEN,
@@ -120,12 +139,12 @@ contract Radish is Ownable, ReentrancyGuard {
             block.timestamp
         );
 
-        totalLiquidity = createdPair.totalSupply();
+        totalLiquidityToken = uniswapV2Pair.totalSupply();
         emit Harvested(totalWater, block.timestamp);
     }
 
     // user withdraw if project failed
-    function revokeWater() external onlyGardener nonReentrant {
+    function revokeWater() external onlyGardeners nonReentrant {
         if (block.timestamp >= endTime && softCap > totalWater) {
             withered = true;
         }
@@ -134,4 +153,77 @@ contract Radish is Ownable, ReentrancyGuard {
         payable(msg.sender).transfer(_funds[msg.sender]);
     }
 
+    // dao methods for gardeners(funders)
+    function initiateWithdrawVote() external onlyGardeners {
+        require(totalLiquidityToken != 0, "RADISH: project did not launch yet");
+        require(_currentVote.timestamp == 0, "RADISH: project has already an ongoing voting");
+
+        _currentVote = Voting(
+            block.timestamp,
+            0, // positive
+            0, // negative
+            0, // stateNumber for other votes
+            votingType_
+        );
+    }
+
+    function initiateExtendVote(uint extendablePeriod) external onlyGardeners {
+        require(totalLiquidityToken != 0, "RADISH: project did not launch yet");
+        require(_currentVote.timestamp == 0, "RADISH: project has already an ongoing voting");
+
+        _currentVote = Voting(
+            block.timestamp,
+            0,
+            0,
+            extendablePeriod,
+            votingType_
+        );
+    }
+
+    function withdrawLiquidity(bool voteState) external onlyGardeners {
+        require(_currentVote.timestamp != 0, "RADISH: no ongoing voting");
+        require(_currentVote.votingType == VotingType.WITHDRAW, "RADISH: wrong voting");
+        appendVote(msg.sender, voteState);
+
+        if (_isPositiveOutcome()) {
+            withered = true;
+            delete _currentVote;
+        } else if (_isNegativeOutcome()) {
+            delete _currentVote;
+        }
+
+    }
+
+    function extendLockingPeriod(bool voteState) external onlyGardeners {
+        require(_currentVote.timestamp != 0, "RADISH: no ongoing voting");
+        require(_currentVote.votingType == VotingType.EXTEND, "RADISH: wrong voting");
+        appendVote(msg.sender, voteState);
+
+        if (_isPositiveOutcome()) {
+            lockDuration += _currentVote.stateNumber;
+            delete _currentVote;
+        } else if (_isNegativeOutcome()) {
+            delete _currentVote;
+        }
+    }
+
+    function appendVote(address account, bool voteState) internal {
+        uint votingPower = getOwnedLiquidity(account);
+
+        if (voteState) {
+            _currentVote.positiveVotes += votingPower;
+        } else {
+            _currentVote.negativeVotes += votingPower;
+        }
+    }
+
+    function _isPositiveOutcome() internal returns (bool) {
+        uint positiveWeight = _currentVote.positiveVotes * 1000 / totalLiquidityToken;
+        return positiveWeight >= majorityPercentage;
+    }
+
+    function _isNegativeOutcome() internal returns (bool) {
+        uint negativeWeight = _currentVote.negativeVotes * 1000 / totalLiquidityToken;
+        return negativeWeight >= majorityPercentage;
+    }
 }
