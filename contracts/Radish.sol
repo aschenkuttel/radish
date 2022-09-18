@@ -17,6 +17,7 @@ contract Radish is Ownable, ReentrancyGuard {
     uint private listingRate;
     uint private liquidityRate;
     uint public lockDuration;
+    uint public lockStart;
 
     // growing period
     mapping(address => uint) private _water;
@@ -141,6 +142,7 @@ contract Radish is Ownable, ReentrancyGuard {
             block.timestamp
         );
 
+        lockStart = block.timestamp;
         totalLiquidityToken = uniswapV2Pair.totalSupply();
         emit Harvested(totalWater, block.timestamp);
     }
@@ -148,8 +150,11 @@ contract Radish is Ownable, ReentrancyGuard {
     // user withdraw if project failed
     function revokeWater() external onlyGardeners nonReentrant {
         require(block.timestamp > endTime, "RADISH: project is still in funding period");
-        if (softCap > totalWater || (block.timestamp - endTime) > 7 days) {
-            withered = true;
+
+        if (!withered) {
+            if (softCap > totalWater || ((block.timestamp - endTime) > 7 days && totalLiquidityToken == 0)) {
+                withered = true;
+            }
         }
 
         require(withered, "RADISH: radish did not wither yet");
@@ -159,6 +164,7 @@ contract Radish is Ownable, ReentrancyGuard {
     // dao methods for gardeners(funders)
     function initiateWithdrawVote() external onlyGardeners {
         require(totalLiquidityToken != 0, "RADISH: project did not launch yet");
+        require((lockStart + lockDuration) > block.timestamp, "RADISH: liquidity is still locked");
         require(_currentVote.timestamp == 0, "RADISH: project has already an ongoing voting");
 
         _currentVote = Voting(
@@ -166,7 +172,7 @@ contract Radish is Ownable, ReentrancyGuard {
             0, // positive
             0, // negative
             0, // stateNumber for other votes
-            votingType_
+            VotingType.WITHDRAW
         );
     }
 
@@ -179,11 +185,11 @@ contract Radish is Ownable, ReentrancyGuard {
             0,
             0,
             extendablePeriod,
-            votingType_
+            VotingType.EXTEND
         );
     }
 
-    function withdrawLiquidity(bool voteState) external onlyGardeners {
+    function voteWithdrawLiquidity(bool voteState) external onlyGardeners {
         require(_currentVote.timestamp != 0, "RADISH: no ongoing voting");
         require(_currentVote.votingType == VotingType.WITHDRAW, "RADISH: wrong voting");
         appendVote(msg.sender, voteState);
@@ -194,16 +200,21 @@ contract Radish is Ownable, ReentrancyGuard {
         } else if (_isNegativeOutcome()) {
             delete _currentVote;
         }
-
     }
 
-    function extendLockingPeriod(bool voteState) external onlyGardeners {
+    function voteExtendLockingPeriod(bool voteState) external onlyGardeners {
         require(_currentVote.timestamp != 0, "RADISH: no ongoing voting");
         require(_currentVote.votingType == VotingType.EXTEND, "RADISH: wrong voting");
         appendVote(msg.sender, voteState);
 
         if (_isPositiveOutcome()) {
-            lockDuration += _currentVote.stateNumber;
+            if ((lockStart + lockDuration) >= block.timestamp) {
+                lockStart = block.timestamp;
+                lockDuration = _currentVote.stateNumber;
+            } else {
+                lockDuration += _currentVote.stateNumber;
+            }
+
             delete _currentVote;
         } else if (_isNegativeOutcome()) {
             delete _currentVote;
