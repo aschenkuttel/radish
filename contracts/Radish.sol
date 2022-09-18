@@ -16,8 +16,7 @@ contract Radish is Ownable, ReentrancyGuard {
     uint private presaleRate;
     uint private listingRate;
     uint private liquidityRate;
-    uint public lockDuration;
-    uint public lockStart;
+    uint public lockedTill;
 
     // growing period
     mapping(address => uint) private _water;
@@ -71,7 +70,7 @@ contract Radish is Ownable, ReentrancyGuard {
         uint presaleRate_, // the amount of tokens a user receives for 1 evmos in presale
         uint listingRate_, // the amount of tokens a user receives for 1 evmos in exchange
         uint liquidityRate_, // the amount of evmos we use for liquidity
-        uint lockDuration_
+        uint lockedTill_
     ) {
         // owner needs to be transferred since
         // garden deployed radish contract
@@ -90,7 +89,7 @@ contract Radish is Ownable, ReentrancyGuard {
         presaleRate = presaleRate_;
         listingRate = listingRate_;
         liquidityRate = liquidityRate_;
-        lockDuration = lockDuration_;
+        lockedTill = lockedTill_;
     }
 
     function getOwnedLiquidity(address account) external view returns (uint) {
@@ -164,7 +163,7 @@ contract Radish is Ownable, ReentrancyGuard {
     // dao methods for gardeners(funders)
     function initiateWithdrawVote() external onlyGardeners {
         require(totalLiquidityToken != 0, "RADISH: project did not launch yet");
-        require((lockStart + lockDuration) > block.timestamp, "RADISH: liquidity is still locked");
+        require(block.timestamp > lockedTill, "RADISH: liquidity is still locked");
         require(_currentVote.timestamp == 0, "RADISH: project has already an ongoing voting");
 
         _currentVote = Voting(
@@ -208,13 +207,7 @@ contract Radish is Ownable, ReentrancyGuard {
         appendVote(msg.sender, voteState);
 
         if (_isPositiveOutcome()) {
-            if ((lockStart + lockDuration) >= block.timestamp) {
-                lockStart = block.timestamp;
-                lockDuration = _currentVote.stateNumber;
-            } else {
-                lockDuration += _currentVote.stateNumber;
-            }
-
+            lockedTill = _currentVote.stateNumber;
             delete _currentVote;
         } else if (_isNegativeOutcome()) {
             delete _currentVote;
