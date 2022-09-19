@@ -1,51 +1,11 @@
-import {Component, Fragment} from "react"
 import {BlockContext} from "./BlockHandler"
 import {BigNumber} from "ethers"
-import {Countdown} from "react-daisyui"
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faDroplet} from "@fortawesome/pro-solid-svg-icons"
+import BaseExplorer from "./BaseExplorer"
 
-export default class Explorer extends Component {
+export default class Explorer extends BaseExplorer {
     static contextType = BlockContext
-
-    constructor(props) {
-        super(props)
-
-        this.intervalID = null
-
-        this.state = {
-            countdowns: {}
-        }
-    }
-
-    updateCountdowns = () => {
-        const countdowns = {}
-        const now = new Date()
-
-        for (const radish of this.context.radishes) {
-            let secDifference = 0
-            let title = "OPEN TILL:"
-            if (radish.startTime > now) {
-                secDifference = Math.round((radish.startTime - now) / 1000)
-                title = "STARTING IN:"
-            } else {
-                secDifference = Math.round((radish.endTime - now) / 1000)
-            }
-
-            if (secDifference < 0) {
-                countdowns[radish.tokenAddress] = [0, 0, 0, "LAUNCH OVER"]
-            } else {
-                const hours = Math.floor(secDifference / 3600);
-                secDifference -= (hours * 3600)
-                const minutes = Math.floor(secDifference / 60);
-                const seconds = secDifference -= (minutes * 60)
-
-                countdowns[radish.tokenAddress] = [hours, minutes, seconds, title]
-            }
-        }
-
-        this.setState({countdowns: countdowns})
-    }
 
     generateRows = () => {
         const rows = []
@@ -76,29 +36,6 @@ export default class Explorer extends Component {
         })
     }
 
-    generateCountdown = (radish) => {
-        const countdown = this.state.countdowns[radish.tokenAddress]
-        if (!countdown) {
-            return <span className="font-medium text-2xl font-mono opacity-0">DONT JUDGE US</span>
-        }
-
-        if (radish.successfull) {
-            return (
-                <p className="font-medium text-2xl font-mono text-success-content">LAUNCH SUCCESSFUL</p>
-            )
-
-        } else return (
-                <Fragment>
-                    <p className="font-medium text-2xl font-mono">{countdown[3]}</p>
-                    <span className="font-mono text-2xl">
-                        <Countdown value={countdown[0]}/>:
-                        <Countdown value={countdown[1]}/>:
-                        <Countdown value={countdown[2]}/>
-                    </span>
-                </Fragment>
-            )
-    }
-
     generateCard = (radish, index) => {
         const percentageReached = radish.fulfilledAmount.mul(BigNumber.from(100).div(radish.hardCap))
         const disabled = radish.startTime > new Date() || new Date() > radish.endTime
@@ -127,7 +64,6 @@ export default class Explorer extends Component {
                             <span>{radish.readable('maximumContribution')}</span>
                             <span>{` ${radish.fundingSymbol}`}</span>
                         </p>
-
                     </div>
 
                     <progress className="progress progress-primary w-full bg-white shadow"
@@ -153,7 +89,7 @@ export default class Explorer extends Component {
                         </div>
                         <button className="btn btn-primary text-white bg-sky-700 hover:bg-sky-800 border-sky-700 hover:border-sky-800" disabled={disabled}>
                             <FontAwesomeIcon icon={faDroplet} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
-                            Fund Project
+                            Water Radish
                         </button>
                     </div>
                 </div>
@@ -162,10 +98,6 @@ export default class Explorer extends Component {
     }
 
     render() {
-        if (this.context?.radishes && this.intervalID === null) {
-            this.intervalID = setInterval(this.updateCountdowns, 1000)
-        }
-
         return (
             <div className="flex flex-col gap-4">
                 {this.generateRows()}

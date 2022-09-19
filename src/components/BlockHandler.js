@@ -2,7 +2,8 @@ import {createContext, Component} from "react";
 import {ethers} from 'ethers'
 import initiateFirestore from "./FireStore"
 import {addDoc, collection, getDocs} from "firebase/firestore"
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
+import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
+import {gardenABI, radishABI} from "../data/ABI"
 import Radish from "../utils/Radish";
 
 const BlockContext = createContext(null)
@@ -27,6 +28,9 @@ class BlockProvider extends Component {
         } else {
             this.provider = new ethers.providers.JsonRpcProvider("https://eth.bd.evmos.dev:8545/")
         }
+
+        this.gardenAddress = ""
+        this.garden = new ethers.Contract(this.gardenAddress, gardenABI, this.provider)
     }
 
     async activeMetaMaskWallet() {
@@ -45,8 +49,11 @@ class BlockProvider extends Component {
         return new Promise(
             (resolve) => {
                 uploadTask.on('state_changed',
-                    (snapshot) => {},
-                    (error) => {},
+                    (_) => {
+                    },
+                    (error) => {
+                        console.log(error)
+                    },
                     () => {
                         // Upload completed successfully, now we can get the download URL
                         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
@@ -61,6 +68,7 @@ class BlockProvider extends Component {
 
     saveRadish = async (data) => {
         const copiedData = {...data}
+        copiedData['creator'] = this.state.address
         delete copiedData.file
 
         if (data.file !== null) {
@@ -75,12 +83,12 @@ class BlockProvider extends Component {
             }
         }
 
-        await addDoc(collection(this.db, 'fundingProjects'), {
+        await addDoc(collection(this.db, 'growingRadishes'), {
             ...copiedData
         })
     }
 
-    plantRadish = async(data) => {
+    plantRadish = async (data) => {
         await this.saveRadish(data)
     }
 
@@ -95,10 +103,15 @@ class BlockProvider extends Component {
         })
 
         const radishes = []
-        const response = await getDocs(collection(this.db, 'fundingProjects'))
+        const response = await getDocs(collection(this.db, 'growingRadishes'))
         response.forEach((rawRadish) => {
             const radishData = rawRadish.data()
-            radishes.push(new Radish(radishData))
+            const radish = new Radish(radishData)
+            radishes.push(radish)
+
+            if (this.state.address === radish.planter) {
+                this.setState({ownRadish: radish})
+            }
         })
 
         this.setState({radishes: radishes})
@@ -118,7 +131,7 @@ class BlockProvider extends Component {
 
     render() {
         return (
-            <BlockContext.Provider  value={{
+            <BlockContext.Provider value={{
                 address: this.state.address,
                 connect: this.connect,
                 radishes: this.state.radishes,

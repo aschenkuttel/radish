@@ -4,11 +4,11 @@ import strftime from "strftime";
 
 export default class Radish {
     constructor(data) {
+        this.planter = data.planter
         this.photoUrl = data.photoUrl
         this.description = data.description
         this.tokenAddress = data.tokenAddress
         this.tokenName = "Unknown Name"
-        this.tokenSymbol = "SYMBOL"
         this.fundingSymbol = "EVMOS"
         this.fulfilledAmount = BigNumber.from(data.fulfilledAmount)
         this.softCap = BigNumber.from(data.softCap)
@@ -22,9 +22,7 @@ export default class Radish {
         this.liquidityRate = data.liquidityRate
         this.lockedTill = new Date(data.lockedTill.seconds * 1000)
         this.successfull = new Date() > this.endTime
-        console.log(new Date())
-        console.log(this.endTime)
-        console.log(this.successfull)
+        this.active = data.active
     }
 
     readable = (key) => {

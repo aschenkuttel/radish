@@ -12,7 +12,7 @@ function App() {
 
     const getTabContent = () => {
         if (activeTab === 'launch') {
-            return <Creator/>
+            return <Creator changeTab={setActiveTab}/>
         } else if (activeTab === 'manage') {
             return <Manage changeTab={setActiveTab}/>
         } else {
