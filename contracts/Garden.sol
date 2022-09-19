@@ -5,6 +5,11 @@ import "./Radish.sol";
 import "./Ownable.sol";
 import "./ERC20.sol";
 
+/*
+DISCLAIMER: WE CURRENTLY ONLY SUPPORT 18 DECIMAL
+            AND NON SELF REDUCING ASSETS
+*/
+
 contract Garden is Ownable {
     mapping(address => address) private _growingRadishes;
 
@@ -33,7 +38,6 @@ contract Garden is Ownable {
     ) external payable {
         require(msg.value >= launchFee, "RADISH: missing launch fee");
         require(_growingRadishes[msg.sender] == address(0), "RADISH: caller has active launch");
-        // we currently only support 18 decimals
         require(ERC20(token).decimals() == evmosDecimals, "RADISH: token does not have 18 decimals");
 
         _createRadish(
