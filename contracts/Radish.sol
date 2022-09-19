@@ -102,6 +102,7 @@ contract Radish is Ownable, ReentrancyGuard {
         require(maximumContribution <= msg.value && msg.value >= minimumContribution, "RADISH: value exceeds contribution range");
         require(endTime < block.timestamp && block.timestamp >= startTime, "RADISH: value outside of funding period");
         require(!ripe, "RADISH: radish is already ripe");
+        require(withered == false, "RADISH: radish is withered");
 
         _water[msg.sender] += msg.value;
         totalWater += msg.value;
@@ -109,6 +110,10 @@ contract Radish is Ownable, ReentrancyGuard {
         if (totalWater >= hardCap) {
             ripe = true;
         }
+    }
+
+    function pluckRadish() external onlyOwner {
+        withered == true;
     }
 
     // launching the project if funded
