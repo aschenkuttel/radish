@@ -6,3 +6,14 @@
 .w-inherit {
   width: inherit;
 }
+
+img.project-icon {
+  width: 400px;
+  min-width: 400px;
+  max-width: 400px;
+  aspect-ratio: 2/1;
+}
+
+.first-child {
+  border-radius: .5rem 0 0 .5rem !important;
+}

@@ -23,7 +23,7 @@ export default function Header(props) {
                 <button className={props.activeTab === 'launch' ? "tab tab-active" : "tab"}
                         onClick={() => props.setActiveTab('launch')}>Launch Project</button>
                 <button className={props.activeTab === 'manage' ? "tab tab-active" : "tab"}
-                        onClick={() => props.setActiveTab('manage')}>Manage Projects</button>
+                        onClick={() => props.setActiveTab('manage')}>Manage Project</button>
                 <button className={props.activeTab === 'funded' ? "tab tab-active" : "tab"}
                         onClick={() => props.setActiveTab('funded')}>Funded Projects</button>
             </div>

@@ -2,7 +2,10 @@ import './App.css';
 import {Fragment, useState} from "react"
 import Header from "./components/Header"
 import Creator from "./components/Creator"
-import 'flowbite/dist/datepicker'
+import Explorer from "./components/Explorer"
+import Manage from "./components/Manage"
+import 'flowbite'
+
 
 function App() {
     const [activeTab, setActiveTab] = useState('explorer')
@@ -11,16 +14,16 @@ function App() {
         if (activeTab === 'launch') {
             return <Creator/>
         } else if (activeTab === 'manage') {
-            return <div></div>
+            return <Manage changeTab={setActiveTab}/>
         } else {
-            return <div></div>//<Explorer/>
+            return <Explorer/>
         }
     }
 
     return (
         <Fragment>
             <Header activeTab={activeTab} setActiveTab={setActiveTab}></Header>
-            <div className="flex flex-col justify-center items-center">
+            <div className="w-full h-full flex flex-col justify-start items-center mt-4">
                 {getTabContent()}
             </div>
         </Fragment>
