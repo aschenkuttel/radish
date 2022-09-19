@@ -40,6 +40,11 @@ contract Radish is Ownable, ReentrancyGuard {
     // denominator is 1000 (0.66)
     uint public majorityPercentage = 660;
 
+    mapping(uint => mapping(address => bool)) redistributed;
+    uint private redistributionDuration = 7 days;
+    uint private redistributionDate;
+    uint private redistributionAmount;
+
     enum VotingType {WITHDRAW, EXTEND}
 
     struct Voting {
@@ -84,9 +89,12 @@ contract Radish is Ownable, ReentrancyGuard {
         maximumContribution = maximumContribution_;
     }
 
+    function _getProportionalAmount(address account, uint total) private view returns(uint) {
+        return _water[account] * 1000 / totalWater * total / 1000;
+    }
 
     function getOwnedLiquidity(address account) public view returns (uint) {
-        return _water[account] * 1000 / totalWater * totalLiquidityToken / 1000;
+        return _getProportionalAmount(account, totalLiquidityToken);
     }
 
     // funding the launching project
@@ -147,6 +155,7 @@ contract Radish is Ownable, ReentrancyGuard {
             block.timestamp
         );
 
+        redistributionDate = block.timestamp;
         totalLiquidityToken = uniswapV2Pair.totalSupply();
         emit Harvested(totalWater, block.timestamp);
     }
@@ -163,6 +172,18 @@ contract Radish is Ownable, ReentrancyGuard {
 
         require(withered, "RADISH: radish did not wither yet");
         payable(msg.sender).transfer(_water[msg.sender]);
+    }
+
+    // weekly manual redistribution for liquidity holders
+    function withdrawRedistribution() external onlyGardeners {
+        if (block.timestamp > (redistributionDate + redistributionDuration)) {
+            redistributionDate = block.timestamp;
+            redistributionAmount = ERC20(token).balanceOf(address(this));
+        }
+
+        require(!redistributed[redistributionDate][msg.sender], "RADISH: already received redistribution");
+        uint partialRedistribution = _getProportionalAmount(redistributionAmount);
+        ERC20(token).transfer(msg.sender, partialRedistribution);
     }
 
     // dao methods for gardeners(funders)
