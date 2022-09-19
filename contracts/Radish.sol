@@ -19,8 +19,6 @@ contract Radish is Ownable, ReentrancyGuard {
     uint private liquidityRate;
     uint public lockedTill;
 
-
-
     // growing period
     mapping(address => uint) private _water;
     uint public totalWater;

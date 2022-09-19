@@ -2,6 +2,7 @@ import './App.css';
 import {Fragment, useState} from "react"
 import Header from "./components/Header"
 import Creator from "./components/Creator"
+import 'flowbite/dist/datepicker'
 
 function App() {
     const [activeTab, setActiveTab] = useState('explorer')
