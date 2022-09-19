@@ -183,7 +183,7 @@ contract Radish is Ownable, ReentrancyGuard {
 
         require(redistributionAmount > 0, "RADISH: the redistribution period does not have any token");
         require(!redistributed[redistributionDate][msg.sender], "RADISH: already received redistribution");
-        uint partialRedistribution = _getProportionalAmount(redistributionAmount);
+        uint partialRedistribution = _getProportionalAmount(msg.sender, redistributionAmount);
         ERC20(token).transfer(msg.sender, partialRedistribution);
     }
 
