@@ -193,6 +193,10 @@ contract Radish is Ownable, ReentrancyGuard {
     }
 
     // dao methods for gardeners(funders)
+    function getVote() external view returns(VotingType) {
+        return _currentVote.votingType;
+    }
+
     function initiateWithdrawVote() external onlyGardeners {
         require(totalLiquidityToken != 0, "RADISH: project did not launch yet");
         require(block.timestamp > lockedTill, "RADISH: liquidity is still locked");
