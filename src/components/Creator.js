@@ -210,7 +210,7 @@ export default class Creator extends Component {
                         <button className="btn btn-accent bg-rose-600 border-rose-600 text-white opacity-75"
                                 onClick={async () => {
                                     await this.context.plantRadish(this.prepareData())
-                                    this.props.changeTab('explorer')
+                                    // this.props.changeTab('explorer')
                                 }}
                                 disabled={this.context.address == null}>
                             <FontAwesomeIcon icon={faSeedling} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>

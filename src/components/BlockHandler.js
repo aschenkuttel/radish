@@ -119,7 +119,7 @@ class BlockProvider extends Component {
 
     waterRadish = async (radish) => {
         const signer = radish.contract.connect(radish.provider.getSigner())
-        await signer.waterRadish({value: parseEther(0.02)})
+        await signer.waterRadish({value: parseEther("0.02")})
     }
 
     async fetchFromDatabase() {
@@ -188,7 +188,8 @@ class BlockProvider extends Component {
                 connect: this.connect,
                 radishes: this.state.radishes,
                 ownRadish: this.state.ownRadish,
-                plantRadish: this.plantRadish
+                plantRadish: this.plantRadish,
+                waterRadish: this.waterRadish
             }}>
                 {this.props.children}
             </BlockContext.Provider>
