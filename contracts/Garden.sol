@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./Radish.sol";
-import "./Ownable.sol";
-import "./ERC20.sol";
 
 /*
 DISCLAIMER: WE CURRENTLY ONLY SUPPORT 18 DECIMAL
@@ -38,7 +36,7 @@ contract Garden is Ownable {
     ) external payable {
         require(msg.value >= launchFee, "RADISH: missing launch fee");
         require(_growingRadishes[msg.sender] == address(0), "RADISH: caller has active launch");
-        require(ERC20(token).decimals() == evmosDecimals, "RADISH: token does not have 18 decimals");
+        require(ERC20(token).decimals() == evmosDecimals, "RADISH: token needs 18 decimals");
 
         _createRadish(
             msg.sender,
@@ -77,7 +75,6 @@ contract Garden is Ownable {
             minimumContribution,
             maximumContribution
         );
-
     }
 
     function _createRadish(
@@ -90,8 +87,9 @@ contract Garden is Ownable {
         uint minimumContribution,
         uint maximumContribution
     ) internal {
-        require((startTime - block.timestamp) > 7 days, "RADISH: startTime can't be more than 7 days from now");
-        require(7 days > (endTime - startTime), "RADISH: duration can't exceed 7 days");
+        require(startTime > block.timestamp, "RADISH: startTime needs to be in future");
+        require((startTime - block.timestamp) < 7 days, "RADISH: startTime has to be in 7 days");
+        require((endTime - startTime) < 7 days, "RADISH: duration can't exceed 7 days");
 
         Radish plantedRadish = new Radish(
             factoryAddress,
@@ -121,5 +119,4 @@ contract Garden is Ownable {
     function setTokenPrice(uint newFee) external onlyOwner {
         tokenFee = newFee;
     }
-
 }
