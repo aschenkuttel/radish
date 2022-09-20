@@ -1,11 +1,17 @@
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faSeedling, faFacePensive, faShovel, faSickle} from "@fortawesome/pro-solid-svg-icons"
-import {BigNumber} from "ethers";
-import BaseExplorer from "./BaseExplorer";
+import {BigNumber} from "ethers"
+import BaseExplorer from "./BaseExplorer"
 
 export default class Manage extends BaseExplorer {
     componentDidMount() {
-        this.setIterable([this.context.ownRadish])
+        if (this.context.ownRadish !== null) {
+            this.setIterable([this.context.ownRadish])
+            this.toggleCountdown(true)
+        } else {
+            this.toggleCountdown(false)
+        }
+
         super.componentDidMount();
     }
 
@@ -33,7 +39,7 @@ export default class Manage extends BaseExplorer {
             const percentageReached = ownRadish.fulfilledAmount.mul(BigNumber.from(100).div(ownRadish.hardCap))
 
             return (
-                <div className="card max-w-lg shadow-xl">
+                <div className="card w-card shadow-xl">
                     <figure className="bg-base-200"><img src={ownRadish.photoUrl} className="project-icon"
                                                          alt="Project Icon"/>
                     </figure>

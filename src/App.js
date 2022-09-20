@@ -3,6 +3,7 @@ import {Fragment, useState} from "react"
 import Header from "./components/Header"
 import Creator from "./components/Creator"
 import Explorer from "./components/Explorer"
+import WateredExplorer from "./components/WateredExplorer"
 import Manage from "./components/Manage"
 import 'flowbite'
 
@@ -15,6 +16,8 @@ function App() {
             return <Creator changeTab={setActiveTab}/>
         } else if (activeTab === 'manage') {
             return <Manage changeTab={setActiveTab}/>
+        } else if (activeTab === 'watered') {
+            return <WateredExplorer changeTab={setActiveTab}/>
         } else {
             return <Explorer/>
         }

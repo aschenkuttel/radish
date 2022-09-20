@@ -23,6 +23,8 @@ export default class Radish {
         this.lockedTill = new Date(data.lockedTill.seconds * 1000)
         this.successfull = new Date() > this.endTime
         this.active = data.active
+        this.gardeners = data.gardeners
+        this.currentVote = null
     }
 
     readable = (key) => {

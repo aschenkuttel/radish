@@ -17,7 +17,8 @@ class BlockProvider extends Component {
         this.state = {
             address: null,
             radishes: [],
-            ownRadish: null
+            ownRadish: null,
+            wateredRadishes: []
         }
 
         const {ethereum} = window
@@ -92,6 +93,30 @@ class BlockProvider extends Component {
         await this.saveRadish(data)
     }
 
+    async fetchFromDatabase() {
+        const radishes = []
+        let ownRadish = null
+        const wateredRadishes = []
+        const response = await getDocs(collection(this.db, 'growingRadishes'))
+
+        response.forEach((rawRadish) => {
+            const radishData = rawRadish.data()
+            const radish = new Radish(radishData)
+            radishes.push(radish)
+
+            if (this.state.address === radish.planter) {
+                ownRadish = radish
+            } else if (radish.gardeners.includes(this.state.address) || true)
+                wateredRadishes.push(radish)
+        })
+
+        this.setState({
+            radishes: radishes,
+            ownRadish: ownRadish,
+            wateredRadishes: wateredRadishes
+        })
+    }
+
     async componentDidMount() {
         const address = await this.activeMetaMaskWallet()
         if (address !== null) {
@@ -99,22 +124,12 @@ class BlockProvider extends Component {
         }
 
         this.ethereum.on('accountsChanged', async (wallets) => {
-            this.setState({address: wallets[0] || null})
+            const currentWallet = (wallets.length > 0) ? wallets[0] : null
+            const address = (currentWallet) ? ethers.utils.getAddress(currentWallet) : null
+            this.setState({address: address}, this.fetchFromDatabase)
         })
 
-        const radishes = []
-        const response = await getDocs(collection(this.db, 'growingRadishes'))
-        response.forEach((rawRadish) => {
-            const radishData = rawRadish.data()
-            const radish = new Radish(radishData)
-            radishes.push(radish)
-
-            if (this.state.address === radish.planter) {
-                this.setState({ownRadish: radish})
-            }
-        })
-
-        this.setState({radishes: radishes})
+        await this.fetchFromDatabase()
     }
 
     connect = async () => {

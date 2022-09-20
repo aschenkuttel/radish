@@ -5,11 +5,12 @@ import {BlockContext} from "./BlockHandler"
 export default class BaseExplorer extends Component {
     static contextType = BlockContext
 
-    constructor(props, context) {
+    constructor(props) {
         super(props)
 
         this.intervalID = null
         this.iterable = null
+        this.countdown = true
 
         this.state = {
             countdowns: {}
@@ -18,6 +19,10 @@ export default class BaseExplorer extends Component {
 
     setIterable = (iterable) => {
         this.iterable = iterable
+    }
+
+    toggleCountdown = (state) => {
+        this.countdown = state
     }
 
     updateCountdowns = () => {
@@ -72,9 +77,57 @@ export default class BaseExplorer extends Component {
         )
     }
 
+    generateCard = () => {
+        throw Error("missing override")
+    }
+
+    generateRows = () => {
+        const iterable = this.iterable || this.context.radishes
+
+        const rows = []
+        let row = []
+
+        for (let i = 0; i <iterable.length; i++) {
+            const radish = iterable[i]
+            row.push(this.generateCard(radish, i))
+
+            if (row.length === 3) {
+                rows.push([...row])
+                row = []
+            }
+        }
+
+        if (row.length > 0) {
+            rows.push([...row])
+        }
+
+        return rows.map((row, index) => {
+            return (
+                <div key={index} className="w-full flex gap-4">
+                    {row[0]}
+                    {row[1]}
+                    {row[2]}
+                </div>
+            )
+        })
+    }
+
     componentDidMount() {
-        if (this.context?.radishes && this.intervalID === null) {
+        if (this.countdown && this.context?.radishes && this.intervalID === null) {
+            this.updateCountdowns()
             this.intervalID = setInterval(this.updateCountdowns, 1000)
         }
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.intervalID)
+    }
+
+    render() {
+        return (
+            <div className="flex flex-col gap-4">
+                {this.generateRows()}
+            </div>
+        )
     }
 }

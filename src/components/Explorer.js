@@ -1,39 +1,21 @@
-import {BlockContext} from "./BlockHandler"
 import {BigNumber} from "ethers"
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faDroplet} from "@fortawesome/pro-solid-svg-icons"
 import BaseExplorer from "./BaseExplorer"
 
 export default class Explorer extends BaseExplorer {
-    static contextType = BlockContext
-
-    generateRows = () => {
-        const rows = []
-        let row = []
-
-        for (let i = 0; i < this.context.radishes.length; i++) {
-            const radish = this.context.radishes[i]
-            row.push(this.generateCard(radish, i))
-
-            if (row.length === 3) {
-                rows.push([...row])
-                row = []
-            }
+    liquidityHighlight = (radish) => {
+        if (radish.liquidityRate < 50) {
+            return <span className="text-red-800">
+                <span className="font-bold">WARNING: </span>
+                Liquidity Rate:
+                <span className="text-neutral-focus"> {radish.liquidityRate}%</span>
+            </span>
+        } else if (radish.liquidityRate < 80) {
+            return <span className="text-orange-800">Liquidity Rate: {radish.liquidityRate}%</span>
+        } else {
+            return <span className="text-green-800">Liquidity Rate: {radish.liquidityRate}%</span>
         }
-
-        if (row.length > 0) {
-            rows.push([...row])
-        }
-
-        return rows.map((row, index) => {
-            return (
-                <div key={index} className="w-full flex gap-4">
-                    {row[0]}
-                    {row[1]}
-                    {row[2]}
-                </div>
-            )
-        })
     }
 
     generateCard = (radish, index) => {
@@ -41,7 +23,7 @@ export default class Explorer extends BaseExplorer {
         const disabled = radish.startTime > new Date() || new Date() > radish.endTime
 
         return (
-            <div key={index} className="card max-w-lg shadow-xl">
+            <div key={index} className="card w-card shadow-xl">
                 <figure className="bg-base-200"><img src={radish.photoUrl} className="project-icon" alt="Project Icon"/>
                 </figure>
                 <div className="card-body">
@@ -79,6 +61,10 @@ export default class Explorer extends BaseExplorer {
                         </p>
                     </div>
 
+                    <div className="mt-4">
+                        <p>{this.liquidityHighlight(radish)}</p>
+                    </div>
+
                     <div className="divider"></div>
 
                     <div className="flex justify-between items-center gap-4 text-sm">
@@ -93,14 +79,6 @@ export default class Explorer extends BaseExplorer {
                         </button>
                     </div>
                 </div>
-            </div>
-        )
-    }
-
-    render() {
-        return (
-            <div className="flex flex-col gap-4">
-                {this.generateRows()}
             </div>
         )
     }

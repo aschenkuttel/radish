@@ -1,19 +1,24 @@
 #root {
-  width: 100vw;
-  height: 100vh;
+    width: 100vw;
+    height: 100vh;
 }
 
 .w-inherit {
-  width: inherit;
+    width: inherit;
 }
 
 img.project-icon {
-  width: 400px;
-  min-width: 400px;
-  max-width: 400px;
-  aspect-ratio: 2/1;
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+    aspect-ratio: 2/1;
 }
 
 .first-child {
-  border-radius: .5rem 0 0 .5rem !important;
+    border-radius: .5rem 0 0 .5rem !important;
+}
+
+.w-card {
+    width: 400px;
+    max-width: 400px !important;
 }
