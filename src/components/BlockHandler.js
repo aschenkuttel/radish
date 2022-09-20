@@ -31,7 +31,7 @@ class BlockProvider extends Component {
             this.provider = new ethers.providers.JsonRpcProvider("https://eth.bd.evmos.dev:8545/")
         }
 
-        this.gardenAddress = "0xbcDa25733Fe98812cad87b5d1D078D6C0BEC9858"
+        this.gardenAddress = "0xb383cF6B8F9854F66C791a57b897e06CBfFc8d55"
         this.garden = new ethers.Contract(this.gardenAddress, gardenABI, this.provider)
     }
 
