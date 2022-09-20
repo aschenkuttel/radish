@@ -113,7 +113,8 @@ contract Radish is Ownable, ReentrancyGuard {
     }
 
     function pluckRadish() external onlyOwner {
-        withered == true;
+        require(!withered, "RADISH: radish already withered away");
+        withered = true;
     }
 
     // launching the project if funded
