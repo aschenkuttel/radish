@@ -14,6 +14,8 @@ export default class Manage extends BaseExplorer {
 
         super.componentDidMount();
     }
+    
+    modal = () => {}
 
     render = () => {
         const ownRadish = this.context.ownRadish
