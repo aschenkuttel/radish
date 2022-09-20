@@ -158,7 +158,8 @@ class BlockProvider extends Component {
 
             const docRef = doc(this.db, "growingRadishes", radish.address)
             await updateDoc(docRef, {
-                fulfilledAmount: radish.fulfilledAmount.toString()
+                fulfilledAmount: radish.fulfilledAmount.toString(),
+                tokenName: radish.tokenName
             })
         }
     }

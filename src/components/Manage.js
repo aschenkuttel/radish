@@ -14,7 +14,7 @@ export default class Manage extends BaseExplorer {
 
         super.componentDidMount();
     }
-    
+
     modal = () => {}
 
     render = () => {
