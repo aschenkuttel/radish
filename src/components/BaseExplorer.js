@@ -16,7 +16,7 @@ export default class BaseExplorer extends Component {
 
         this.state = {
             countdowns: {},
-            openModal: false
+            openModal: null
         }
     }
 
