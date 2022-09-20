@@ -1,6 +1,5 @@
 import {createContext, Component} from "react"
 import {ethers} from 'ethers'
-import {parseEther} from "ethers/lib/utils"
 import initiateFirestore from "./FireStore"
 import {doc, setDoc, updateDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
@@ -24,6 +23,7 @@ class BlockProvider extends Component {
 
         const {ethereum} = window
         this.ethereum = ethereum
+        this.networkID = 9000
 
         if (this.ethereum) {
             this.provider = new ethers.providers.Web3Provider(ethereum)
@@ -31,7 +31,7 @@ class BlockProvider extends Component {
             this.provider = new ethers.providers.JsonRpcProvider("https://eth.bd.evmos.dev:8545/")
         }
 
-        this.gardenAddress = "0x788Dd38429BadaB14b3ad4d33F6c4a2552635Fc3"
+        this.gardenAddress = "0xb383cF6B8F9854F66C791a57b897e06CBfFc8d55"
         this.garden = new ethers.Contract(this.gardenAddress, gardenABI, this.provider)
     }
 
@@ -127,6 +127,17 @@ class BlockProvider extends Component {
         }
     }
 
+    pluckRadish = async (radish) => {
+        try {
+            const signer = radish.contract.connect(radish.provider.getSigner())
+            const response = await signer.pluckRadish()
+            await response.wait()
+            return true
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     async fetchFromDatabase() {
         const radishes = []
         let ownRadish = null
@@ -152,6 +163,8 @@ class BlockProvider extends Component {
             wateredRadishes: wateredRadishes
         })
 
+        if (this.network.chainId !== this.networkID) return
+
         for (const radish of radishes) {
             await radish.fetchMetaData(this.provider)
             await radish.fetchStats(this.provider)
@@ -176,6 +189,8 @@ class BlockProvider extends Component {
                 const address = (currentWallet) ? ethers.utils.getAddress(currentWallet) : null
                 this.setState({address: address}, this.fetchFromDatabase)
             })
+
+            this.network = await this.provider.getNetwork()
         }
 
         await this.fetchFromDatabase()
@@ -196,12 +211,15 @@ class BlockProvider extends Component {
     render() {
         return (
             <BlockContext.Provider value={{
+                network: this.network,
+                networkID: this.networkID,
                 address: this.state.address,
                 connect: this.connect,
                 radishes: this.state.radishes,
                 ownRadish: this.state.ownRadish,
                 plantRadish: this.plantRadish,
-                waterRadish: this.waterRadish
+                waterRadish: this.waterRadish,
+                pluckRadish: this.pluckRadish
             }}>
                 {this.props.children}
             </BlockContext.Provider>

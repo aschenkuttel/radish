@@ -3,7 +3,7 @@ import {useContext} from "react"
 import {BlockContext} from "./BlockHandler"
 
 export default function Header(props) {
-    const {address, connect} = useContext(BlockContext)
+    const {address, connect, network, networkID} = useContext(BlockContext)
 
     let buttonContent = "Connect"
 
@@ -11,9 +11,17 @@ export default function Header(props) {
         buttonContent = "0x..." + address.substring(address.length - 6, address.length)
     }
 
+    const networkHighlight = () => {
+        if (network && network.chainId !== networkID) {
+            return (
+                <button className="btn btn-error">Wrong Network</button>
+            )
+        }
+    }
+
     return (
         <header className="flex justify-between gap-4 p-4">
-            <div className="flex justify-center w-32">
+            <div className="flex justify-start w-96">
                 <img src={icon} className="h-10" alt="icon"/>
             </div>
 
@@ -28,7 +36,10 @@ export default function Header(props) {
                         onClick={() => props.setActiveTab('watered')}>Funded Projects</button>
             </div>
 
-            <button className="btn btn-primary btn-md w-32" onClick={connect}>{buttonContent}</button>
+            <div className="flex justify-end gap-2 w-96">
+                {networkHighlight()}
+                <button className="btn btn-primary btn-md w-32" onClick={connect}>{buttonContent}</button>
+            </div>
         </header>
     )
 }
