@@ -91,7 +91,7 @@ contract Garden is Ownable {
         uint maximumContribution
     ) internal {
         require((startTime - block.timestamp) > 7 days, "RADISH: startTime can't be more than 7 days from now");
-        require(7 days > (endTime - startTime), "RADISH: duration can't exceed 7 days");
+        require(7 days < (endTime - startTime), "RADISH: duration can't exceed 7 days");
 
         Radish plantedRadish = new Radish(
             factoryAddress,
