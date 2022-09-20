@@ -15,8 +15,8 @@ contract Garden is Ownable {
     address routerAddress;
 
     uint private constant evmosDecimals = 18;
-    uint public launchFee = 10 * (10 ** evmosDecimals);
-    uint public tokenFee = 10 * (10 ** evmosDecimals);
+    uint public launchFee = 0 * (10 ** evmosDecimals);
+    uint public tokenFee = 0 * (10 ** evmosDecimals);
 
     event RadishPlanted(address owner, uint timestamp);
 
