@@ -41,5 +41,5 @@ We will also onboard our first projects and create incentives for early adopters
 - improve gas efficiency of our smart contract
 - hire a designer
 
-**[Detailed Paper](https://radish.tiiny.site)**
+**[Detailed Paper](https://github.com/aschenkuttel/radish/blob/master/Evmos%20Momentum%20Hackathon%20-%20WP.pdf)**
 
