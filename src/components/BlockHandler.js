@@ -1,10 +1,11 @@
-import {createContext, Component} from "react";
+import {createContext, Component} from "react"
 import {ethers} from 'ethers'
+import {parseEther} from "ethers/lib/utils"
 import initiateFirestore from "./FireStore"
 import {doc, setDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
-import {gardenABI, radishABI} from "../data/ABI"
-import Radish from "../utils/Radish";
+import {gardenABI} from "../data/ABI"
+import Radish from "../utils/Radish"
 
 const BlockContext = createContext(null)
 
@@ -109,12 +110,16 @@ class BlockProvider extends Component {
             data['creator'] = this.state.address
             data.gardeners = []
             await this.saveRadish(data, radishAddress)
+            await this.fetchFromDatabase()
+
         }).catch((error) => {
             console.log(error)
         })
     }
 
-    waterRadish = async () => {
+    waterRadish = async (radish) => {
+        const signer = radish.contract.connect(radish.provider.getSigner())
+        await signer.waterRadish({value: parseEther(0.02)})
     }
 
     async fetchFromDatabase() {
@@ -125,6 +130,7 @@ class BlockProvider extends Component {
 
         response.forEach((rawRadish) => {
             const radishData = rawRadish.data()
+            radishData.address = rawRadish.id
             const radish = new Radish(this.provider, radishData)
 
             radishes.push(radish)

@@ -2,15 +2,18 @@ import {formatEther} from "ethers/lib/utils"
 import {BigNumber} from "ethers"
 import strftime from "strftime"
 import {ethers} from "ethers"
-import {ERC20ABI} from "../data/ABI"
+import {ERC20ABI, radishABI} from "../data/ABI"
 
 export default class Radish {
     constructor(provider, data) {
+        this.provider = provider
+        this.address = data.address
+        this.contract = new ethers.Contract(this.address, radishABI, this.provider)
         this.planter = data.planter
         this.photoUrl = data.photoUrl
         this.description = data.description
         this.tokenAddress = data.tokenAddress
-        this.token = new ethers.Contract(this.tokenAddress, ERC20ABI, provider)
+        this.token = new ethers.Contract(this.tokenAddress, ERC20ABI, this.provider)
         this.tokenName = ""
         this.fundingSymbol = "EVMOS"
         this.fulfilledAmount = BigNumber.from(data.fulfilledAmount)

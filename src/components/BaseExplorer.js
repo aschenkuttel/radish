@@ -40,14 +40,14 @@ export default class BaseExplorer extends Component {
             }
 
             if (secDifference < 0) {
-                countdowns[radish.tokenAddress] = [0, 0, 0, "LAUNCH OVER"]
+                countdowns[radish.address] = [0, 0, 0, "LAUNCH OVER"]
             } else {
                 const hours = Math.floor(secDifference / 3600);
                 secDifference -= (hours * 3600)
                 const minutes = Math.floor(secDifference / 60);
                 const seconds = secDifference -= (minutes * 60)
 
-                countdowns[radish.tokenAddress] = [hours, minutes, seconds, title]
+                countdowns[radish.address] = [hours, minutes, seconds, title]
             }
         }
 
@@ -55,7 +55,7 @@ export default class BaseExplorer extends Component {
     }
 
     generateCountdown = (radish) => {
-        const countdown = this.state.countdowns[radish.tokenAddress]
+        const countdown = this.state.countdowns[radish.address]
         if (!countdown) {
             return <span className="font-medium text-2xl font-mono opacity-0">DONT JUDGE US</span>
         }
