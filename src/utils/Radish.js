@@ -14,7 +14,7 @@ export default class Radish {
         this.description = data.description
         this.tokenAddress = data.tokenAddress
         this.token = new ethers.Contract(this.tokenAddress, ERC20ABI, this.provider)
-        this.tokenName = ""
+        this.tokenName = data.tokenName || null
         this.fundingSymbol = "EVMOS"
         this.fulfilledAmount = BigNumber.from(data.fulfilledAmount)
         this.softCap = BigNumber.from(data.softCap)
