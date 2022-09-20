@@ -1,7 +1,7 @@
 import {createContext, Component} from "react";
 import {ethers} from 'ethers'
 import initiateFirestore from "./FireStore"
-import {addDoc, collection, getDocs} from "firebase/firestore"
+import {doc, setDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
 import {gardenABI, radishABI} from "../data/ABI"
 import Radish from "../utils/Radish";
@@ -67,9 +67,8 @@ class BlockProvider extends Component {
         )
     }
 
-    saveRadish = async (data) => {
+    saveRadish = async (data, address) => {
         const copiedData = {...data}
-        copiedData['creator'] = this.state.address
         delete copiedData.file
 
         if (data.file !== null) {
@@ -84,7 +83,8 @@ class BlockProvider extends Component {
             }
         }
 
-        await addDoc(collection(this.db, 'growingRadishes'), {
+        const docRef = doc(this.db, "growingRadishes", address)
+        await setDoc(docRef, {
             ...copiedData
         })
     }
@@ -105,12 +105,16 @@ class BlockProvider extends Component {
         ).then(async (response) => {
             await response.wait()
 
-            data.id = await signer.getRadish(this.state.address)
+            const radishAddress = await signer.getRadish(this.state.address)
+            data['creator'] = this.state.address
             data.gardeners = []
-            await this.saveRadish(data)
+            await this.saveRadish(data, radishAddress)
         }).catch((error) => {
             console.log(error)
         })
+    }
+
+    waterRadish = async () => {
     }
 
     async fetchFromDatabase() {
@@ -148,11 +152,13 @@ class BlockProvider extends Component {
             this.setState({address: address})
         }
 
-        this.ethereum.on('accountsChanged', async (wallets) => {
-            const currentWallet = (wallets.length > 0) ? wallets[0] : null
-            const address = (currentWallet) ? ethers.utils.getAddress(currentWallet) : null
-            this.setState({address: address}, this.fetchFromDatabase)
-        })
+        if (this.ethereum) {
+            this.ethereum.on('accountsChanged', async (wallets) => {
+                const currentWallet = (wallets.length > 0) ? wallets[0] : null
+                const address = (currentWallet) ? ethers.utils.getAddress(currentWallet) : null
+                this.setState({address: address}, this.fetchFromDatabase)
+            })
+        }
 
         await this.fetchFromDatabase()
     }
