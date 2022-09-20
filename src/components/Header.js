@@ -3,12 +3,20 @@ import {useContext} from "react"
 import {BlockContext} from "./BlockHandler"
 
 export default function Header(props) {
-    const {address, connect} = useContext(BlockContext)
+    const {address, connect, network} = useContext(BlockContext)
 
     let buttonContent = "Connect"
 
     if (address !== null) {
         buttonContent = "0x..." + address.substring(address.length - 6, address.length)
+    }
+
+    const networkHighlight = () => {
+        if (network && network.chainId !== 97) {
+            return (
+                <button className="btn btn-error">Wrong Network</button>
+            )
+        }
     }
 
     return (
@@ -28,7 +36,10 @@ export default function Header(props) {
                         onClick={() => props.setActiveTab('watered')}>Funded Projects</button>
             </div>
 
-            <button className="btn btn-primary btn-md w-32" onClick={connect}>{buttonContent}</button>
+            <div className="flex gap-2">
+                {networkHighlight()}
+                <button className="btn btn-primary btn-md w-32" onClick={connect}>{buttonContent}</button>
+            </div>
         </header>
     )
 }

@@ -2,7 +2,7 @@ import {createContext, Component} from "react"
 import {ethers} from 'ethers'
 import {parseEther} from "ethers/lib/utils"
 import initiateFirestore from "./FireStore"
-import {doc, setDoc, updateDoc, collection, getDocs} from "firebase/firestore"
+import {doc, setDoc, updateDoc, deleteDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
 import {gardenABI} from "../data/ABI"
 import Radish from "../utils/Radish"
@@ -127,6 +127,17 @@ class BlockProvider extends Component {
         }
     }
 
+    pluckRadish = async (radish) => {
+        try {
+            const signer = radish.contract.connect(radish.provider.getSigner())
+            const response = await signer.pluckRadish()
+            await response.wait()
+            return true
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     async fetchFromDatabase() {
         const radishes = []
         let ownRadish = null
@@ -176,6 +187,8 @@ class BlockProvider extends Component {
                 const address = (currentWallet) ? ethers.utils.getAddress(currentWallet) : null
                 this.setState({address: address}, this.fetchFromDatabase)
             })
+
+            this.network = await this.provider.getNetwork()
         }
 
         await this.fetchFromDatabase()
@@ -196,12 +209,14 @@ class BlockProvider extends Component {
     render() {
         return (
             <BlockContext.Provider value={{
+                network: this.network,
                 address: this.state.address,
                 connect: this.connect,
                 radishes: this.state.radishes,
                 ownRadish: this.state.ownRadish,
                 plantRadish: this.plantRadish,
-                waterRadish: this.waterRadish
+                waterRadish: this.waterRadish,
+                pluckRadish: this.pluckRadish
             }}>
                 {this.props.children}
             </BlockContext.Provider>

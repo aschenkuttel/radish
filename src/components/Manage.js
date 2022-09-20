@@ -74,7 +74,9 @@ export default class Manage extends BaseExplorer {
 
                         <div className="flex justify-between items-center gap-4 text-sm">
                             <button
-                                className="btn text-white" disabled={false}>
+                                className="btn text-white" disabled={false} onClick={async () => {
+                                    await this.context.pluckRadish(ownRadish)
+                                }}>
                                 <FontAwesomeIcon icon={faShovel} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
                                 Pluck Radish
                             </button>
