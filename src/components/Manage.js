@@ -44,8 +44,8 @@ export default class Manage extends BaseExplorer {
                                                          alt="Project Icon"/>
                     </figure>
                     <div className="card-body">
-                        <p className="text-2xl font-bold font-mono">{ownRadish.tokenName}</p>
-                        <p className="text-sm">{ownRadish.description || "Missing Description"}</p>
+                        <p className="text-2xl text-center font-bold font-mono">{ownRadish.displayName}</p>
+                        <p className="text-sm text-center">{ownRadish.description || "Missing Description"}</p>
 
                         <div className="divider !mb-0"></div>
 

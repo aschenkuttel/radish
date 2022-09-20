@@ -2,19 +2,26 @@ import {BigNumber} from "ethers"
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faDroplet} from "@fortawesome/pro-solid-svg-icons"
 import BaseExplorer from "./BaseExplorer"
+import {Fragment} from "react"
 
 export default class Explorer extends BaseExplorer {
     liquidityHighlight = (radish) => {
         if (radish.liquidityRate < 50) {
-            return <span className="text-red-800">
-                <span className="font-bold">WARNING: </span>
-                Liquidity Rate:
+            return <span className="text-sm text-red-800">
+                <span className="font-bold">WARNING! </span>
+                LIQUIDITY RATE:
                 <span className="text-neutral-focus"> {radish.liquidityRate}%</span>
             </span>
         } else if (radish.liquidityRate < 80) {
-            return <span className="text-orange-800">Liquidity Rate: {radish.liquidityRate}%</span>
+            return <Fragment>
+                <span className="text-sm font-bold text-orange-800">LIQUIDITY RATE: </span>
+                <span>{radish.liquidityRate}%</span>
+            </Fragment>
         } else {
-            return <span className="text-green-800">Liquidity Rate: {radish.liquidityRate}%</span>
+            return <Fragment>
+                <span className="text-sm font-bold text-primary">LIQUIDITY RATE: </span>
+                <span>{radish.liquidityRate}%</span>
+            </Fragment>
         }
     }
 
@@ -27,8 +34,8 @@ export default class Explorer extends BaseExplorer {
                 <figure className="bg-base-200"><img src={radish.photoUrl} className="project-icon" alt="Project Icon"/>
                 </figure>
                 <div className="card-body">
-                    <p className="text-2xl font-bold font-mono">{radish.tokenName}</p>
-                    <p className="text-sm">{radish.description || "Missing Description"}</p>
+                    <p className="text-2xl text-center font-bold font-mono">{radish.displayName}</p>
+                    <p className="text-sm text-center">{radish.description || "Missing Description"}</p>
 
                     <div className="divider !mb-0"></div>
 
@@ -61,7 +68,9 @@ export default class Explorer extends BaseExplorer {
                         </p>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="divider"></div>
+
+                    <div className="text-center">
                         <p>{this.liquidityHighlight(radish)}</p>
                     </div>
 
@@ -73,7 +82,9 @@ export default class Explorer extends BaseExplorer {
                             <span
                                 className="font-medium text-black">{radish.readable('lockedTill')}</span>
                         </div>
-                        <button className="btn btn-primary text-white bg-sky-700 hover:bg-sky-800 border-sky-700 hover:border-sky-800" disabled={disabled}>
+                        <button
+                            className="btn btn-primary text-white bg-sky-700 hover:bg-sky-800 border-sky-700 hover:border-sky-800"
+                            disabled={disabled}>
                             <FontAwesomeIcon icon={faDroplet} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
                             Water Radish
                         </button>

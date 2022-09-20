@@ -30,7 +30,7 @@ class BlockProvider extends Component {
             this.provider = new ethers.providers.JsonRpcProvider("https://eth.bd.evmos.dev:8545/")
         }
 
-        this.gardenAddress = ""
+        this.gardenAddress = "0x788Dd38429BadaB14b3ad4d33F6c4a2552635Fc3"
         this.garden = new ethers.Contract(this.gardenAddress, gardenABI, this.provider)
     }
 
@@ -90,7 +90,27 @@ class BlockProvider extends Component {
     }
 
     plantRadish = async (data) => {
-        await this.saveRadish(data)
+        const signer = this.garden.connect(this.provider.getSigner())
+        console.log("CONNECTED")
+
+        // TODO SEND EVMOS
+        signer.createRadish(
+            data.tokenAddress,
+            data.softCap,
+            data.hardCap,
+            Math.round(data.startTime.getTime() / 1000),
+            Math.round(data.endTime.getTime() / 1000),
+            data.minimumContribution,
+            data.maximumContribution
+        ).then(async (response) => {
+            await response.wait()
+
+            data.id = await signer.getRadish(this.state.address)
+            data.gardeners = []
+            await this.saveRadish(data)
+        }).catch((error) => {
+            console.log(error)
+        })
     }
 
     async fetchFromDatabase() {
@@ -101,7 +121,8 @@ class BlockProvider extends Component {
 
         response.forEach((rawRadish) => {
             const radishData = rawRadish.data()
-            const radish = new Radish(radishData)
+            const radish = new Radish(this.provider, radishData)
+
             radishes.push(radish)
 
             if (this.state.address === radish.planter) {
@@ -109,6 +130,10 @@ class BlockProvider extends Component {
             } else if (radish.gardeners.includes(this.state.address) || true)
                 wateredRadishes.push(radish)
         })
+
+        for (const radish of radishes) {
+            await radish.fetchMetaData(this.provider)
+        }
 
         this.setState({
             radishes: radishes,

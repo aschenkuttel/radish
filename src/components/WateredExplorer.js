@@ -15,18 +15,20 @@ export default class WateredExplorer extends BaseExplorer {
                 <figure className="bg-base-200"><img src={radish.photoUrl} className="project-icon" alt="Project Icon"/>
                 </figure>
                 <div className="card-body">
-                    <p className="text-2xl font-bold font-mono">{radish.tokenName}</p>
-                    <p className="text-sm">{radish.description || "Missing Description"}</p>
+                    <p className="text-2xl text-center font-bold font-mono">{radish.displayName}</p>
+                    <p className="text-sm text-center ">{radish.description || "Missing Description"}</p>
 
                     <div className="divider"></div>
 
-                    <div className="flex justify-between items-center gap-4 text-sm">
+                    <div className="text-sm text-center">
                         <div className="flex flex-col">
                             <span className="font-bold mt-1 text-primary">LOCKED TILL:</span>
                             <span
                                 className="font-medium text-black">{radish.readable('lockedTill')}</span>
                         </div>
                     </div>
+
+                    <div className="divider"></div>
 
                     <div className="flex flex-col items-center gap-2">
                         <p className="text-2xl font-bold font-mono">VOTE</p>
