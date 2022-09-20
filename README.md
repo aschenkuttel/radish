@@ -42,4 +42,5 @@ We will also onboard our first projects and create incentives for early adopters
 - hire a designer
 
 **[Detailed Paper](https://github.com/aschenkuttel/radish/blob/master/Evmos%20Momentum%20Hackathon%20-%20WP.pdf)**
+**[Live Demo](https://app.radishpool.com/)**
 
