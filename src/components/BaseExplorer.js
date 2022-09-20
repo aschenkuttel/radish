@@ -1,5 +1,5 @@
 import {Component, Fragment} from "react"
-import {Countdown} from "react-daisyui"
+import {Countdown, Button, Modal, InputGroup, Input} from "react-daisyui"
 import {BlockContext} from "./BlockHandler"
 
 export default class BaseExplorer extends Component {
@@ -12,8 +12,11 @@ export default class BaseExplorer extends Component {
         this.iterable = null
         this.countdown = true
 
+        this.data = {}
+
         this.state = {
-            countdowns: {}
+            countdowns: {},
+            openModal: false
         }
     }
 
@@ -23,6 +26,14 @@ export default class BaseExplorer extends Component {
 
     toggleCountdown = (state) => {
         this.countdown = state
+    }
+
+    toggleModal = (state) => {
+        this.setState({openModal: state})
+    }
+
+    modal = () => {
+        throw Error("Missing Modal")
     }
 
     updateCountdowns = () => {
@@ -87,7 +98,7 @@ export default class BaseExplorer extends Component {
         const rows = []
         let row = []
 
-        for (let i = 0; i <iterable.length; i++) {
+        for (let i = 0; i < iterable.length; i++) {
             const radish = iterable[i]
             row.push(this.generateCard(radish, i))
 
@@ -126,6 +137,7 @@ export default class BaseExplorer extends Component {
     render() {
         return (
             <div className="flex flex-col gap-4">
+                {this.modal()}
                 {this.generateRows()}
             </div>
         )

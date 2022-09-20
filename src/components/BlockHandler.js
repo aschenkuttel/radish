@@ -2,7 +2,7 @@ import {createContext, Component} from "react"
 import {ethers} from 'ethers'
 import {parseEther} from "ethers/lib/utils"
 import initiateFirestore from "./FireStore"
-import {doc, setDoc, collection, getDocs} from "firebase/firestore"
+import {doc, setDoc, updateDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
 import {gardenABI} from "../data/ABI"
 import Radish from "../utils/Radish"
@@ -118,8 +118,13 @@ class BlockProvider extends Component {
     }
 
     waterRadish = async (radish) => {
-        const signer = radish.contract.connect(radish.provider.getSigner())
-        await signer.waterRadish({value: parseEther("0.02")})
+        try {
+            const signer = radish.contract.connect(radish.provider.getSigner())
+            const response = await signer.water({value: parseEther("0.02")})
+            await response.wait()
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     async fetchFromDatabase() {
@@ -141,15 +146,21 @@ class BlockProvider extends Component {
                 wateredRadishes.push(radish)
         })
 
-        for (const radish of radishes) {
-            await radish.fetchMetaData(this.provider)
-        }
-
         this.setState({
             radishes: radishes,
             ownRadish: ownRadish,
             wateredRadishes: wateredRadishes
         })
+
+        for (const radish of radishes) {
+            await radish.fetchMetaData(this.provider)
+            await radish.fetchStats(this.provider)
+
+            const docRef = doc(this.db, "growingRadishes", radish.address)
+            await updateDoc(docRef, {
+                fulfilledAmount: radish.fulfilledAmount.toString()
+            })
+        }
     }
 
     async componentDidMount() {

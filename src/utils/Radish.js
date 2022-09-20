@@ -43,6 +43,14 @@ export default class Radish {
         this.tokenName = await signer.name()
     }
 
+    fetchStats = async (provider, db) => {
+        console.log(this.fulfilledAmount.toString())
+        if (!this.fulfilledAmount.isZero()) return
+        const signer = this.contract.connect(provider.getSigner())
+        this.fulfilledAmount = await signer.totalWater()
+        console.log(this.fulfilledAmount.toString())
+    }
+
     readable = (key) => {
         const value = this[key]
 

@@ -1,8 +1,10 @@
 import {BigNumber} from "ethers"
+import {parseEther} from "ethers/lib/utils"
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faDroplet} from "@fortawesome/pro-solid-svg-icons"
 import BaseExplorer from "./BaseExplorer"
 import {Fragment} from "react"
+import {Button, Input, InputGroup, Modal} from "react-daisyui"
 
 export default class Explorer extends BaseExplorer {
     liquidityHighlight = (radish) => {
@@ -25,8 +27,38 @@ export default class Explorer extends BaseExplorer {
         }
     }
 
+    waterRadish = async () => {
+        if (this.data.waterAmount) {
+            await this.context.waterRadish(this.data.waterAmount)
+        }
+
+        this.toggleModal(false)
+    }
+
+    modal = () => {
+        return (
+            <Modal open={this.state.openModal}>
+                <Modal.Body>
+                    <div className="flex gap-6">
+                        <InputGroup>
+                            <Input type="number" placeholder="10" bordered className="w-inherit"
+                                   onChange={(e) => this.data.waterAmount = parseEther(e.target.value)}/>
+                            <span>EVMOS</span>
+                        </InputGroup>
+                        <Button className="text-white bg-sky-700 hover:bg-sky-800 border-sky-700 hover:border-sky-800"
+                                onClick={this.waterRadish}>
+                            <FontAwesomeIcon icon={faDroplet} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
+                            Water Radish
+                        </Button>
+                    </div>
+                </Modal.Body>
+            </Modal>
+        )
+    }
+
     generateCard = (radish, index) => {
-        const percentageReached = radish.fulfilledAmount.mul(BigNumber.from(100).div(radish.hardCap))
+        const rawPercentageReached = (radish.fulfilledAmount.mul(BigNumber.from(1000)).div(radish.hardCap))
+        const percentageReached = Math.round(parseInt(rawPercentageReached) * 10) / 100
         const disabled = radish.startTime > new Date() || new Date() > radish.endTime
 
         return (
@@ -84,7 +116,9 @@ export default class Explorer extends BaseExplorer {
                         </div>
                         <button
                             className="btn btn-primary text-white bg-sky-700 hover:bg-sky-800 border-sky-700 hover:border-sky-800"
-                            disabled={disabled} onClick={async () => await this.context.waterRadish(radish)}>
+                            disabled={disabled} onClick={async () => {
+                            this.toggleModal(true)
+                        }}>
                             <FontAwesomeIcon icon={faDroplet} className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
                             Water Radish
                         </button>
