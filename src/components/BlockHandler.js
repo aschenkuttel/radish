@@ -117,10 +117,10 @@ class BlockProvider extends Component {
         })
     }
 
-    waterRadish = async (radish) => {
+    waterRadish = async (radish, amount) => {
         try {
             const signer = radish.contract.connect(radish.provider.getSigner())
-            const response = await signer.water({value: parseEther("0.02")})
+            const response = await signer.water({value: amount})
             await response.wait()
         } catch (error) {
             console.log(error)

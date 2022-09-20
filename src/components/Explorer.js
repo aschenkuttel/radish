@@ -27,9 +27,9 @@ export default class Explorer extends BaseExplorer {
         }
     }
 
-    waterRadish = async () => {
+    waterRadish = async (radish) => {
         if (this.data.waterAmount) {
-            await this.context.waterRadish(this.data.waterAmount)
+            await this.context.waterRadish(radish, this.data.waterAmount)
         }
 
         this.toggleModal(false)
