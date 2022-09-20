@@ -107,7 +107,7 @@ class BlockProvider extends Component {
             await response.wait()
 
             const radishAddress = await signer.getRadish(this.state.address)
-            data['creator'] = this.state.address
+            data['planter'] = this.state.address
             data.gardeners = []
             await this.saveRadish(data, radishAddress)
             await this.fetchFromDatabase()

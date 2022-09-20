@@ -8,7 +8,7 @@ export default class WateredExplorer extends BaseExplorer {
         this.toggleCountdown(false)
         super.componentDidMount();
     }
-    
+
     modal = () => {}
 
     generateCard = (radish, index) => {
