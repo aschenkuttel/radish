@@ -1,8 +1,7 @@
 import {createContext, Component} from "react"
 import {ethers} from 'ethers'
-import {parseEther} from "ethers/lib/utils"
 import initiateFirestore from "./FireStore"
-import {doc, setDoc, updateDoc, deleteDoc, collection, getDocs} from "firebase/firestore"
+import {doc, setDoc, updateDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
 import {gardenABI} from "../data/ABI"
 import Radish from "../utils/Radish"
@@ -24,6 +23,7 @@ class BlockProvider extends Component {
 
         const {ethereum} = window
         this.ethereum = ethereum
+        this.networkID = 9000
 
         if (this.ethereum) {
             this.provider = new ethers.providers.Web3Provider(ethereum)
@@ -31,7 +31,7 @@ class BlockProvider extends Component {
             this.provider = new ethers.providers.JsonRpcProvider("https://eth.bd.evmos.dev:8545/")
         }
 
-        this.gardenAddress = "0x788Dd38429BadaB14b3ad4d33F6c4a2552635Fc3"
+        this.gardenAddress = "0xbcDa25733Fe98812cad87b5d1D078D6C0BEC9858"
         this.garden = new ethers.Contract(this.gardenAddress, gardenABI, this.provider)
     }
 
@@ -163,6 +163,8 @@ class BlockProvider extends Component {
             wateredRadishes: wateredRadishes
         })
 
+        if (this.network.chainId !== this.networkID) return
+
         for (const radish of radishes) {
             await radish.fetchMetaData(this.provider)
             await radish.fetchStats(this.provider)
@@ -210,6 +212,7 @@ class BlockProvider extends Component {
         return (
             <BlockContext.Provider value={{
                 network: this.network,
+                networkID: this.networkID,
                 address: this.state.address,
                 connect: this.connect,
                 radishes: this.state.radishes,
