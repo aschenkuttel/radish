@@ -16,7 +16,7 @@ function App() {
     return (
         <Fragment>
             <Header pathname={location.pathname}></Header>
-            <div className="w-full h-full flex flex-col justify-start items-center mt-4">
+            <div className="w-full flex-1 flex flex-col justify-start items-center mt-4">
                 <Routes>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/explore" element={<Explorer/>}/>
