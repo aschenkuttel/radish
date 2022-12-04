@@ -1,5 +1,5 @@
 import {createContext, Component} from "react"
-import {ethers} from 'ethers'
+import {ethers, BigNumber} from 'ethers'
 import initiateFirestore from "./FireStore"
 import {doc, setDoc, updateDoc, collection, getDocs} from "firebase/firestore"
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
@@ -103,7 +103,7 @@ class BlockProvider extends Component {
             Math.round(data.endTime.getTime() / 1000),
             data.minimumContribution,
             data.maximumContribution,
-            {value: 10000000000000000000}
+            {value: BigNumber.from("10000000000000000000")}
         ).then(async (response) => {
             await response.wait()
 
