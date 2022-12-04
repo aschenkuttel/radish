@@ -1,8 +1,9 @@
 import icon from "../data/icon.png"
 import {useContext} from "react"
 import {BlockContext} from "./BlockHandler"
+import {NavLink} from "react-router-dom"
 
-export default function Header(props) {
+export default function Header({pathname}) {
     const {address, connect, network, networkID} = useContext(BlockContext)
 
     let buttonContent = "Connect"
@@ -26,14 +27,21 @@ export default function Header(props) {
             </div>
 
             <div className="tabs tabs-boxed h-fit">
-                <button className={props.activeTab === 'explorer' ? "tab tab-active" : "tab"}
-                        onClick={() => props.setActiveTab('explorer')}>Explorer</button>
-                <button className={props.activeTab === 'launch' ? "tab tab-active" : "tab"}
-                        onClick={() => props.setActiveTab('launch')}>Launch Project</button>
-                <button className={props.activeTab === 'manage' ? "tab tab-active" : "tab"}
-                        onClick={() => props.setActiveTab('manage')}>Manage Project</button>
-                <button className={props.activeTab === 'watered' ? "tab tab-active" : "tab"}
-                        onClick={() => props.setActiveTab('watered')}>Funded Projects</button>
+                <NavLink to="/" className={pathname === '/' ? "tab tab-active" : "tab"}>
+                    Home
+                </NavLink>
+                <NavLink to="/explore" className={pathname === '/explore' ? "tab tab-active" : "tab"}>
+                    Explorer
+                </NavLink>
+                <NavLink to="/launch" className={pathname === '/launch' ? "tab tab-active" : "tab"}>
+                    Launch Project
+                </NavLink>
+                <NavLink to="/manage" className={pathname === '/manage' ? "tab tab-active" : "tab"}>
+                    Manage Project
+                </NavLink>
+                <NavLink to="/watered" className={pathname === '/watered' ? "tab tab-active" : "tab"}>
+                    Funded Projects
+                </NavLink>
             </div>
 
             <div className="flex justify-end gap-2 w-96">
