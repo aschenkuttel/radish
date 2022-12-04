@@ -102,7 +102,8 @@ class BlockProvider extends Component {
             Math.round(data.startTime.getTime() / 1000),
             Math.round(data.endTime.getTime() / 1000),
             data.minimumContribution,
-            data.maximumContribution
+            data.maximumContribution,
+            {value: 10000000000000000000}
         ).then(async (response) => {
             await response.wait()
 
